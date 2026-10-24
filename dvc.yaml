@@ -1,0 +1,70 @@
+stages:
+  ingest:
+    cmd: python -m ml_pipeline.dvc_stages ingest
+    deps:
+      - ml_pipeline/data.py
+      - ml_pipeline/dvc_stages.py
+    outs:
+      - data/raw/iris.csv
+
+  validate:
+    cmd: python -m ml_pipeline.dvc_stages validate
+    deps:
+      - data/raw/iris.csv
+      - ml_pipeline/data.py
+      - ml_pipeline/dvc_stages.py
+    outs:
+      - data/processed/iris.csv
+      - reports/validation.json
+
+  split:
+    cmd: >-
+      python -m ml_pipeline.dvc_stages split
+      --test-size ${split.test_size}
+      --random-state ${split.random_state}
+    deps:
+      - data/processed/iris.csv
+      - ml_pipeline/dvc_stages.py
+    params:
+      - split.test_size
+      - split.random_state
+    outs:
+      - data/processed/test.csv
+      - data/processed/train.csv
+
+  train:
+    cmd: >-
+      python -m ml_pipeline.dvc_stages train
+      --random-state ${train.random_state}
+      --max-iter ${train.max_iter}
+    deps:
+      - data/processed/train.csv
+      - ml_pipeline/dvc_stages.py
+      - ml_pipeline/training.py
+      - ml_pipeline/transformation.py
+    params:
+      - train.random_state
+      - train.max_iter
+    outs:
+      - artifacts/trained_model.joblib
+
+  evaluate:
+    cmd: python -m ml_pipeline.dvc_stages evaluate
+    deps:
+      - artifacts/trained_model.joblib
+      - data/processed/test.csv
+      - ml_pipeline/dvc_stages.py
+      - ml_pipeline/evaluation.py
+    metrics:
+      - reports/metrics.json
+
+  deploy:
+    cmd: python -m ml_pipeline.dvc_stages deploy
+    deps:
+      - artifacts/trained_model.joblib
+      - ml_pipeline/data.py
+      - ml_pipeline/deployment.py
+      - ml_pipeline/dvc_stages.py
+      - reports/metrics.json
+    outs:
+      - artifacts/iris_model.joblib

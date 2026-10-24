@@ -1,0 +1,4 @@
+/data/
+/reports/
+/artifacts/trained_model.joblib
+/artifacts/iris_model.joblib
