@@ -1,0 +1,148 @@
+schema: '2.0'
+stages:
+  ingest:
+    cmd: python -m ml_pipeline.dvc_stages ingest
+    deps:
+    - path: ml_pipeline/data.py
+      hash: md5
+      md5: cd4e0af42108af6a3c7254db6297167c
+      size: 1680
+    - path: ml_pipeline/dvc_stages.py
+      hash: md5
+      md5: 0d102e61a300a4dc5fd29cd7d2663fd4
+      size: 5057
+    outs:
+    - path: data/raw/iris.csv
+      hash: md5
+      md5: 4d301abed5efe50eccda350cde38e0eb
+      size: 2777
+  validate:
+    cmd: python -m ml_pipeline.dvc_stages validate
+    deps:
+    - path: data/raw/iris.csv
+      hash: md5
+      md5: 4d301abed5efe50eccda350cde38e0eb
+      size: 2777
+    - path: ml_pipeline/data.py
+      hash: md5
+      md5: cd4e0af42108af6a3c7254db6297167c
+      size: 1680
+    - path: ml_pipeline/dvc_stages.py
+      hash: md5
+      md5: 0d102e61a300a4dc5fd29cd7d2663fd4
+      size: 5057
+    outs:
+    - path: data/processed/iris.csv
+      hash: md5
+      md5: 4d301abed5efe50eccda350cde38e0eb
+      size: 2777
+    - path: reports/validation.json
+      hash: md5
+      md5: 43ff25a66a6f0c7e509972acc22b7f92
+      size: 73
+  split:
+    cmd: python -m ml_pipeline.dvc_stages split --test-size 0.2 --random-state 
+      42
+    deps:
+    - path: data/processed/iris.csv
+      hash: md5
+      md5: 4d301abed5efe50eccda350cde38e0eb
+      size: 2777
+    - path: ml_pipeline/dvc_stages.py
+      hash: md5
+      md5: 0d102e61a300a4dc5fd29cd7d2663fd4
+      size: 5057
+    params:
+      params.yaml:
+        split.random_state: 42
+        split.test_size: 0.2
+    outs:
+    - path: data/processed/test.csv
+      hash: md5
+      md5: 12633f6b7b7282fb932761e33b24d21d
+      size: 617
+    - path: data/processed/train.csv
+      hash: md5
+      md5: 47fd89ce6c52daa555a94670836c67a2
+      size: 2237
+  train:
+    cmd: python -m ml_pipeline.dvc_stages train --random-state 42 --max-iter 
+      1000
+    deps:
+    - path: data/processed/train.csv
+      hash: md5
+      md5: 47fd89ce6c52daa555a94670836c67a2
+      size: 2237
+    - path: ml_pipeline/dvc_stages.py
+      hash: md5
+      md5: 0d102e61a300a4dc5fd29cd7d2663fd4
+      size: 5057
+    - path: ml_pipeline/training.py
+      hash: md5
+      md5: 22baead24f8497c03a61580ba410f331
+      size: 532
+    - path: ml_pipeline/transformation.py
+      hash: md5
+      md5: b16468c76f5e266aee8739f1db8abf27
+      size: 517
+    params:
+      params.yaml:
+        train.max_iter: 1000
+        train.random_state: 42
+    outs:
+    - path: artifacts/trained_model.joblib
+      hash: md5
+      md5: c2976de0d38e064b0bb1a7d547c95d6f
+      size: 1889
+  evaluate:
+    cmd: python -m ml_pipeline.dvc_stages evaluate
+    deps:
+    - path: artifacts/trained_model.joblib
+      hash: md5
+      md5: c2976de0d38e064b0bb1a7d547c95d6f
+      size: 1889
+    - path: data/processed/test.csv
+      hash: md5
+      md5: 12633f6b7b7282fb932761e33b24d21d
+      size: 617
+    - path: ml_pipeline/dvc_stages.py
+      hash: md5
+      md5: 0d102e61a300a4dc5fd29cd7d2663fd4
+      size: 5057
+    - path: ml_pipeline/evaluation.py
+      hash: md5
+      md5: 4c8d1dc4662497cc3542b9e56ff6e89f
+      size: 688
+    outs:
+    - path: reports/metrics.json
+      hash: md5
+      md5: 7126534434a17b47b30e51b5df0650be
+      size: 150
+  deploy:
+    cmd: python -m ml_pipeline.dvc_stages deploy
+    deps:
+    - path: artifacts/trained_model.joblib
+      hash: md5
+      md5: c2976de0d38e064b0bb1a7d547c95d6f
+      size: 1889
+    - path: ml_pipeline/data.py
+      hash: md5
+      md5: cd4e0af42108af6a3c7254db6297167c
+      size: 1680
+    - path: ml_pipeline/deployment.py
+      hash: md5
+      md5: 0c3daf666cf5237616f5f7c06899eafc
+      size: 623
+    - path: ml_pipeline/dvc_stages.py
+      hash: md5
+      md5: 0d102e61a300a4dc5fd29cd7d2663fd4
+      size: 5057
+    - path: reports/metrics.json
+      hash: md5
+      md5: 7126534434a17b47b30e51b5df0650be
+      size: 150
+    outs:
+    - path: artifacts/iris_model.joblib
+      hash: md5
+      md5: 12f0103ebd7722486c09eeecbad99cb8
+      size: 2445

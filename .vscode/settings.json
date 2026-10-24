@@ -1,0 +1,4 @@
+{
+  "python.defaultInterpreterPath": "/Users/rohit/miniconda3/envs/mlops/bin/python",
+  "python.terminal.activateEnvironment": true
+}
