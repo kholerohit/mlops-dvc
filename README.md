@@ -75,6 +75,43 @@ Open <http://127.0.0.1:8000> for the interface or <http://127.0.0.1:8000/docs>
 for the interactive API documentation. The app trains the model on startup if
 the artifact does not exist. The interface can also rerun the pipeline.
 
+## Run with Docker
+
+Docker Compose builds the application image, starts the FastAPI service and an
+unprivileged Nginx reverse proxy, and stores the trained model in a named volume.
+Only Nginx is published to the host; the API is reachable through the Compose
+network, not directly from the host.
+
+Copy `.env.example` to `.env` and add a DagsHub user access token. The token is
+passed to the app at runtime and is not copied into the image:
+
+```bash
+cp .env.example .env
+# Edit .env and set DAGSHUB_USER_TOKEN to your DagsHub token.
+docker compose up --build -d
+```
+
+Open <http://localhost:8080> for the app or
+<http://localhost:8080/docs> for the API docs. To use a different host port,
+set `APP_PORT` in `.env` before starting the stack.
+
+View service status and logs with:
+
+```bash
+docker compose ps
+docker compose logs -f app nginx
+```
+
+Stop the containers while keeping the saved model:
+
+```bash
+docker compose down
+```
+
+The named `model-artifacts` volume persists across rebuilds and container
+recreation. To delete that volume and the saved model as well, run
+`docker compose down --volumes`.
+
 ### API endpoints
 
 - `GET /health` reports model readiness and the latest evaluation metrics.
