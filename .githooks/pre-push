@@ -1,0 +1,17 @@
+#!/bin/sh
+set -eu
+
+repo_root=$(git rev-parse --show-toplevel)
+cd "$repo_root"
+
+echo "Running tests before push..."
+if [ -x "$repo_root/.venv/bin/python" ]; then
+	"$repo_root/.venv/bin/python" -m unittest discover -s tests -v
+elif command -v python >/dev/null 2>&1; then
+	python -m unittest discover -s tests -v
+elif command -v python3 >/dev/null 2>&1; then
+	python3 -m unittest discover -s tests -v
+else
+	echo "Python was not found. Activate the project environment and try again." >&2
+	exit 1
+fi

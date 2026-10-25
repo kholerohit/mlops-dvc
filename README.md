@@ -82,6 +82,23 @@ request, set the required number of approving reviews, and require the
 `test-and-track` status check. GitHub branch protection controls approval; the
 workflow itself only runs the tracking step after the change has reached `main`.
 
+### Run tests before pushing
+
+Install the repository's local pre-push hook once:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+With the project environment active and dependencies installed, `git push`
+automatically runs the same tests as GitHub Actions. A failing test blocks the
+push. The tests mock DagsHub logging, so this check does not require a token or
+network access. To run the tests manually:
+
+```bash
+python -m unittest discover -s tests -v
+```
+
 ## Run the web app
 
 ```bash
