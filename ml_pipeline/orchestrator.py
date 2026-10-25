@@ -8,6 +8,7 @@ from ml_pipeline.data import load_iris_data, validate_data
 from ml_pipeline.deployment import save_model
 from ml_pipeline.evaluation import evaluate_model
 from ml_pipeline.training import train_model
+from ml_pipeline.tracking import log_experiment
 
 
 def run_pipeline(model_path: Path = MODEL_PATH) -> dict[str, Any]:
@@ -23,6 +24,16 @@ def run_pipeline(model_path: Path = MODEL_PATH) -> dict[str, Any]:
     )
     model = train_model(x_train, y_train, random_state=RANDOM_STATE)
     metrics = evaluate_model(model, x_test, y_test)
+    log_experiment(
+        model,
+        {
+            "random_state": RANDOM_STATE,
+            "test_size": TEST_SIZE,
+            "train_rows": len(x_train),
+            "test_rows": len(x_test),
+        },
+        metrics,
+    )
     metadata["metrics"] = metrics
     artifact_path = save_model(model, metadata, model_path)
     return {

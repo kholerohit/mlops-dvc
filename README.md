@@ -13,6 +13,8 @@ scikit-learn, so no external data file or network download is needed.
 - **Training:** fit logistic regression with a reproducible stratified split.
 - **Evaluation:** report accuracy, macro precision, macro recall, and macro F1 on
 	the held-out test split.
+- **Experiment tracking:** log training parameters, held-out metrics, and the
+	fitted model to the `iris-classification` MLflow experiment on DagsHub.
 - **Deployment:** save the fitted pipeline and inference metadata to
 	`artifacts/iris_model.joblib`.
 - **Frontend/API:** serve a small prediction interface and JSON endpoints with
@@ -24,6 +26,11 @@ scikit-learn, so no external data file or network download is needed.
 conda activate mlops
 python -m pip install -r requirements.txt
 ```
+
+The MLflow tracking server is configured for
+<https://dagshub.com/kholerohit/mlops-dvc.mlflow>. Authenticate with DagsHub
+before running the pipeline; use `DAGSHUB_USER_TOKEN` or the DagsHub CLI login
+so runs and model artifacts can be uploaded to the repository.
 
 ## Run the complete pipeline
 
