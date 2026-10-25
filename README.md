@@ -63,6 +63,25 @@ DVC keeps generated data and model outputs under `data/`, `reports/`, and
 `artifacts/`, and records their dependencies in `dvc.lock`. The deploy stage
 creates `artifacts/iris_model.joblib`, which the FastAPI app loads for inference.
 
+## GitHub Actions CI
+
+The workflow at `.github/workflows/ml-pipeline.yml` runs the test suite on every
+push and pull request targeting `main`. After tests pass on a push to `main` (for
+example, after a pull request is merged), it runs `demo.py` and logs the trained
+model, parameters, and metrics to the DagsHub `iris-classification` experiment.
+Pull requests do not receive the DagsHub credential and do not upload runs.
+
+Add a repository Actions secret named `DAGSHUB_USER_TOKEN` in GitHub under
+**Settings > Secrets and variables > Actions**. Use a DagsHub token with write
+access to `kholerohit/mlops-dvc`. Do not put the token in workflow files or commit
+it to the repository.
+
+To require approval before merging, configure branch protection for `main` in
+**Settings > Branches** (or the repository rulesets page): require a pull
+request, set the required number of approving reviews, and require the
+`test-and-track` status check. GitHub branch protection controls approval; the
+workflow itself only runs the tracking step after the change has reached `main`.
+
 ## Run the web app
 
 ```bash
