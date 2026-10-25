@@ -13,6 +13,7 @@ from ml_pipeline.data import load_iris_data, validate_data
 from ml_pipeline.deployment import save_model
 from ml_pipeline.evaluation import evaluate_model
 from ml_pipeline.training import train_model
+from ml_pipeline.tracking import log_experiment
 
 
 RAW_DATA_PATH = PROJECT_ROOT / "data" / "raw" / "iris.csv"
@@ -80,6 +81,18 @@ def split(test_size: float, random_state: int) -> None:
 def train(random_state: int, max_iter: int) -> None:
     features, target = _read_dataset(TRAIN_DATA_PATH)
     model = train_model(features, target, random_state=random_state, max_iter=max_iter)
+    test_features, test_target = _read_dataset(TEST_DATA_PATH)
+    metrics = evaluate_model(model, test_features, test_target)
+    log_experiment(
+        model,
+        {
+            "random_state": random_state,
+            "max_iter": max_iter,
+            "train_rows": len(features),
+            "test_rows": len(test_features),
+        },
+        metrics,
+    )
     TRAINED_MODEL_PATH.parent.mkdir(parents=True, exist_ok=True)
     joblib.dump(model, TRAINED_MODEL_PATH)
     print(f"Saved trained model to {TRAINED_MODEL_PATH.relative_to(PROJECT_ROOT)}")

@@ -9,3 +9,5 @@ dvc
 PyYAML
 fastapi
 uvicorn[standard]
+dagshub
+mlflow

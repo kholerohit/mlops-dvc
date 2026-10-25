@@ -39,8 +39,11 @@ stages:
       --max-iter ${train.max_iter}
     deps:
       - data/processed/train.csv
+      - data/processed/test.csv
       - ml_pipeline/dvc_stages.py
+      - ml_pipeline/evaluation.py
       - ml_pipeline/training.py
+      - ml_pipeline/tracking.py
       - ml_pipeline/transformation.py
     params:
       - train.random_state
