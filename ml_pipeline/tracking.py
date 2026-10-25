@@ -1,3 +1,4 @@
+import os
 from typing import Any
 
 import dagshub
@@ -15,6 +16,11 @@ def log_experiment(
     metrics: dict[str, float],
 ) -> None:
     """Log one completed training run and its sklearn model to DagsHub."""
+    tracking_enabled = os.environ.get("MLFLOW_TRACKING_ENABLED", "true").lower()
+    if tracking_enabled in {"0", "false", "no", "off"}:
+        print("MLflow tracking disabled for this pipeline run.")
+        return
+
     dagshub.init(repo_owner="kholerohit", repo_name="mlops-dvc", mlflow=True)
     mlflow.set_tracking_uri(DAGSHUB_TRACKING_URI)
     mlflow.set_experiment(EXPERIMENT_NAME)
