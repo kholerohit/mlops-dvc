@@ -23,7 +23,6 @@ scikit-learn, so no external data file or network download is needed.
 ## Setup
 
 ```bash
-conda activate mlops
 python -m pip install -r requirements.txt
 ```
 
@@ -75,42 +74,68 @@ Open <http://127.0.0.1:8000> for the interface or <http://127.0.0.1:8000/docs>
 for the interactive API documentation. The app trains the model on startup if
 the artifact does not exist. The interface can also rerun the pipeline.
 
-## Run with Docker
+## Run with Docker Compose
 
-Docker Compose builds the application image, starts the FastAPI service and an
-unprivileged Nginx reverse proxy, and stores the trained model in a named volume.
-Only Nginx is published to the host; the API is reachable through the Compose
-network, not directly from the host.
+Docker Compose runs the published FastAPI image behind an unprivileged Nginx
+reverse proxy. Only Nginx is published to the host; the API stays on the private
+Compose network. A named volume keeps the trained model across container
+restarts.
 
-Copy `.env.example` to `.env` and add a DagsHub user access token. The token is
-passed to the app at runtime and is not copied into the image:
+You need Docker with the Compose plugin. To run the stack from the repository,
+use `compose.yaml` and `nginx/default.conf`. The app logs experiments to the
+DagsHub repository, so it needs a DagsHub access token when it trains the model
+for the first time or when the pipeline is rerun.
+
+Create a local `.env` file from the template and edit it to set your token:
 
 ```bash
 cp .env.example .env
-# Edit .env and set DAGSHUB_USER_TOKEN to your DagsHub token.
-docker compose up --build -d
+```
+
+Keep `.env` private. It is Git-ignored; do not commit it or share your personal
+token. Each person running the project should use a token with access to the
+DagsHub repository.
+
+Pull the app image and start both containers:
+
+```bash
+docker compose pull
+docker compose up -d
 ```
 
 Open <http://localhost:8080> for the app or
-<http://localhost:8080/docs> for the API docs. To use a different host port,
-set `APP_PORT` in `.env` before starting the stack.
+<http://localhost:8080/docs> for the API docs. To change the host port, edit
+`APP_PORT` in `.env` before starting the stack.
 
-View service status and logs with:
-
-```bash
-docker compose ps
-docker compose logs -f app nginx
-```
-
-Stop the containers while keeping the saved model:
+Useful commands:
 
 ```bash
-docker compose down
+docker compose ps                         # Check service status and health
+docker compose logs -f                    # Follow logs from both containers
+docker compose logs -f app                # Follow application logs
+docker compose restart                    # Restart both services
+docker compose pull && docker compose up -d  # Update to the latest published image
+docker compose down                       # Stop and remove containers; keep model data
 ```
 
-The named `model-artifacts` volume persists across rebuilds and container
-recreation. To delete that volume and the saved model as well, run
+The named `model-artifacts` volume survives `docker compose down` and container
+updates. To delete the volume and the saved model too, run
 `docker compose down --volumes`.
+
+To run the published app image without Nginx or Compose, create `.env` as above
+and run:
+
+```bash
+docker run -d --name iris-app \
+	-p 8000:8000 \
+	--env-file .env \
+	-v iris-model:/app/artifacts \
+	--restart unless-stopped \
+	kholerohit/mlops-dvc-app:latest
+```
+
+Then open <http://localhost:8000>. Inspect logs with `docker logs -f iris-app`
+and stop the container with `docker stop iris-app`.
 
 ### API endpoints
 
