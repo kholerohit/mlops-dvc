@@ -65,22 +65,26 @@ creates `artifacts/iris_model.joblib`, which the FastAPI app loads for inference
 
 ## GitHub Actions CI
 
-The workflow at `.github/workflows/ml-pipeline.yml` runs the test suite on every
-push and pull request targeting `main`. After tests pass on a push to `main` (for
-example, after a pull request is merged), it runs `demo.py` and logs the trained
-model, parameters, and metrics to the DagsHub `iris-classification` experiment.
-Pull requests do not receive the DagsHub credential and do not upload runs.
+The workflow at `.github/workflows/ml-pipeline.yml` runs unit tests and then the
+complete training/evaluation pipeline on every push and pull request targeting
+`main`. The pre-merge pipeline validation disables external MLflow tracking, so
+it exercises the real pipeline without requiring a DagsHub credential. After
+both checks pass and code is pushed to `main` (for example, after a pull request
+is merged), the workflow runs the pipeline again and logs its model, parameters,
+and metrics to the DagsHub `iris-classification` experiment. Pull requests do
+not receive the DagsHub credential and do not upload runs.
 
 Add a repository Actions secret named `DAGSHUB_USER_TOKEN` in GitHub under
 **Settings > Secrets and variables > Actions**. Use a DagsHub token with write
 access to `kholerohit/mlops-dvc`. Do not put the token in workflow files or commit
 it to the repository.
 
-To require approval before merging, configure branch protection for `main` in
-**Settings > Branches** (or the repository rulesets page): require a pull
-request, set the required number of approving reviews, and require the
-`test-and-track` status check. GitHub branch protection controls approval; the
-workflow itself only runs the tracking step after the change has reached `main`.
+To require validation and approval before merging, configure branch protection
+for `main` in **Settings > Branches** (or the repository rulesets page): require
+a pull request, set the required number of approving reviews, and require both
+the `test` and `pipeline-validation` status checks. GitHub branch protection
+blocks merging until the checks pass and the required reviews are approved. The
+DagsHub tracking job runs afterward, once the commit reaches `main`.
 
 ### Run tests before pushing
 
