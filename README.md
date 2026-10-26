@@ -23,10 +23,12 @@ scikit-learn, so no external data file or network download is needed.
 ## Setup
 
 ```bash
-python -m pip install -r requirements.txt
-```
-
-The MLflow tracking server is configured for
+	You need Docker with the Compose plugin and `compose.yaml`. The file defines
+	both services and embeds the Nginx proxy configuration. Compose pulls the
+	application image from Docker Hub; you do not need the Dockerfile, Nginx config
+	file, or Python source code to run the published image. You still need to
+	provide a DagsHub token outside the Compose file because the first startup
+	trains a model and sends the MLflow run to DagsHub.
 <https://dagshub.com/kholerohit/mlops-dvc.mlflow>. Authenticate with DagsHub
 before running the pipeline; use `DAGSHUB_USER_TOKEN` or the DagsHub CLI login
 so runs and model artifacts can be uploaded to the repository.
@@ -81,10 +83,7 @@ it to the repository.
 
 To require validation and approval before merging, configure branch protection
 for `main` in **Settings > Branches** (or the repository rulesets page): require
-a pull request, set the required number of approving reviews, and require both
-the `test` and `pipeline-validation` status checks. GitHub branch protection
 blocks merging until the checks pass and the required reviews are approved. The
-DagsHub tracking job runs afterward, once the commit reaches `main`.
 
 ### Run tests before pushing
 
